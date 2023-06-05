@@ -1,0 +1,3 @@
+FROM stackupiss/northwind-db:v1
+
+EXPOSE 3306

@@ -1,0 +1,5 @@
+FROM stackupiss/northwind-app:v1
+
+ENV DB_HOST="mydb"
+ENV DB_USER="root"
+ENV DB_PASSWORD="changeit"

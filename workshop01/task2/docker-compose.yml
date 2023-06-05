@@ -1,0 +1,33 @@
+---
+version: "3.8"
+
+services:
+  myapp:
+    build:
+      context: .
+      dockerfile: Dockerfile_web
+    container_name: myapp
+    ports:
+     - "8080:3000"
+    links: 
+    - "mydb:db"
+    networks:
+    - mynet
+
+  mydb:
+    build: 
+      context: .
+      dockerfile: Dockerfile_db
+    container_name: mydb
+    volumes:
+     - myvol:/var/lib/mysql
+    networks:
+    - mynet
+
+networks:
+  mynet:
+    external: true
+
+volumes:
+  myvol:
+    external: true
