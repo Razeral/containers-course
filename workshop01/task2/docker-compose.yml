@@ -3,10 +3,12 @@ version: "3.8"
 
 services:
   myapp:
-    build:
-      context: .
-      dockerfile: Dockerfile_web
+    image: stackupiss/northwind-app:v1
     container_name: myapp
+    environment:
+    - DB_HOST=mydb
+    - DB_USER=root
+    - DB_PASSWORD=changeit
     ports:
      - "8080:3000"
     links: 
@@ -15,9 +17,7 @@ services:
     - mynet
 
   mydb:
-    build: 
-      context: .
-      dockerfile: Dockerfile_db
+    image: stackupiss/northwind-db:v1
     container_name: mydb
     volumes:
      - myvol:/var/lib/mysql
@@ -26,8 +26,8 @@ services:
 
 networks:
   mynet:
-    external: true
+    name: mynet
 
 volumes:
   myvol:
-    external: true
+    name: myvol
