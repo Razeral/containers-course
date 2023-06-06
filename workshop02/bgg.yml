@@ -28,7 +28,7 @@ spec:
         app: bgg
     spec:
       containers:
-      - name: bggdb
+      - name: bggdb-container
         image: stackupiss/bgg-database:v1
         imagePullPolicy: IfNotPresent
         ports:
@@ -57,18 +57,23 @@ spec:
         app: bgg
     spec:
       containers:
-      - name: bggapp
+      - name: bggapp-container
         image: stackupiss/bgg-backend:v2
         imagePullPolicy: IfNotPresent
         ports:
           - containerPort: 3000
-        env:
-          - name: BGG_DB_USER
-            value: root
-          - name: BGG_DB_HOST
-            value: mydb-svc
-          - name: BGG_DB_PASSWORD
-            value: changeit
+        envFrom:
+          - configMapRef: 
+              name: bgg-cm
+          - secretRef:
+              name: bgg-secret
+        # env:
+        #   - name: BGG_DB_USER
+        #     value: root
+        #   - name: BGG_DB_HOST
+        #     value: mydb-svc
+        #   - name: BGG_DB_PASSWORD
+        #     value: changeit
         livenessProbe:
           httpGet:
             path: /healthz
@@ -112,3 +117,5 @@ spec:
   ports:
   - port: 8080
     targetPort: 3000
+
+
