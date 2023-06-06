@@ -58,7 +58,7 @@ spec:
     spec:
       containers:
       - name: bggapp
-        image: stackupiss/bgg-backend:v1
+        image: stackupiss/bgg-backend:v2
         imagePullPolicy: IfNotPresent
         ports:
           - containerPort: 3000
@@ -103,7 +103,7 @@ metadata:
   name: bggapp-svc
   namespace: bggns
   labels:
-    app: dov-bear
+    app: bgg
 spec:
   type: LoadBalancer  
   selector:
