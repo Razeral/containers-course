@@ -24,6 +24,7 @@ spec:
     metadata:
       name: dov-po
       labels:
+        name: dov-po
         app: dov-bear
     spec:
       containers:
@@ -55,7 +56,7 @@ metadata:
   labels:
     app: dov-bear
 spec:
-  type: ClusterIP
+  type: LoadBalancer  
   selector:
     name: dov-po
     app: dov-bear
