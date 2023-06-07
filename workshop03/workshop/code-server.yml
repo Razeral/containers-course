@@ -1,0 +1,125 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  namespace: codeserver
+  name: code-ing
+  labels:
+    name: code-ing
+    app: code
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: code.144.126.241.60.nip.io
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: code-svc
+            port: 
+              name: code-port
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: code-svc
+  namespace: codeserver
+  labels:
+    app: code
+spec:
+  type: ClusterIP  
+  selector:
+    name: code-po
+    app: code
+  ports:
+  - name: code-port
+    port: 3000
+    protocol: TCP
+    targetPort: 8443
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: code-deploy 
+  namespace: codeserver
+  labels:
+    app: code
+
+spec:
+  selector:
+    matchLabels:
+      name: code-po 
+      app: code
+  template:
+    metadata:
+      name: code-po
+      labels:
+        name: code-po
+        app: code
+    spec:
+      volumes: 
+        - name: workspace-vol
+          persistentVolumeClaim:
+            claimName: code-pvc
+      containers:
+      - name: code-container
+        image: linuxserver/code-server:latest
+        imagePullPolicy: IfNotPresent
+        # resources:
+        #   limits:
+        #     memory: "256Mi"
+        #     cpu: "200m"
+        ports:
+          - containerPort: 8443
+        env:
+          - name: TZ
+            valueFrom:
+              configMapKeyRef:
+                name: code-cm
+                key: TZ
+          - name: DEFAULT_WORKSPACE
+            valueFrom:
+              configMapKeyRef:
+                name: code-cm
+                key: DEFAULT_WORKSPACE
+          - name: PROXY_DOMAIN
+            valueFrom:
+              configMapKeyRef:
+                name: code-cm
+                key: PROXY_DOMAIN       
+          - name: PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: code-secret
+                key: PASSWORD
+          - name: SUDO_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: code-secret
+                key: SUDO_PASSWORD
+        volumeMounts:
+          - mountPath: /config/workspace
+            name: workspace-vol
+  replicas: 1
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: code-pvc
+  namespace: codeserver
+  labels:
+    app: code
+spec:
+  resources:
+    requests:
+      storage: 10Gi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: do-block-storage
+  # persistentVolumeReclaimPolicy: Recycle
