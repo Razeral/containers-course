@@ -1,0 +1,43 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: deny-all
+  namespace: dov-ns
+  labels:
+    app: dov-bear
+    name: deny-all
+
+spec:
+  podSelector:
+    matchLabels:
+      app: dov-bear
+      name: dov-po
+
+  policyTypes:
+    - Ingress
+    - Egress
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-access
+  namespace: dov-ns
+  labels:
+    app: dov-bear
+    name: allow-access
+
+spec:
+  podSelector:
+    matchLabels:
+      app: dov-bear
+      name: dov-po
+  policyTypes:
+    - Ingress
+  ingress:
+  - {}
+    # - from: 
+    #   - podSelector:
+    #       matchLabels:
+    #         web-access: "enabled"

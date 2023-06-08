@@ -1,0 +1,83 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: minio-sts
+  namespace: minio-ns
+  labels:
+    app: minio-app
+    name: minio-sts
+spec:
+  selector:
+    matchLabels:
+      app: minio-app
+      name: minio-po
+  serviceName: minio-hsvc
+  replicas: 4
+  template:
+    metadata:
+      name: minio-po
+      labels:
+        name: minio-po
+        app: minio-app
+    spec:
+      initContainers:
+        - name: busybox
+          image: busybox
+          command:
+          - /bin/sh
+          - -c 
+          - "chown 1001:1001 /data"
+          volumeMounts:
+            - name: minio-pvc
+              mountPath: /data
+
+      containers:
+      - name: minio-container
+        image: bitnami/minio:latest
+        imagePullPolicy: IfNotPresent
+        command:
+        - /bin/bash
+        - -c
+        args:
+        - minio server http://minio-sts-{0...3}.minio-hsvc.minio-ns.svc.cluster.local/data --console-address :9090 
+        ports:
+          - containerPort: 9000
+            name: server-port
+          - containerPort: 9090
+            name: console-port
+        envFrom:
+        - configMapRef:
+            name: minio-cm
+        - secretRef:
+            name: minio-secret
+        livenessProbe:
+          httpGet:
+            path: /minio/health/live
+            port: 9000
+        readinessProbe:
+          httpGet:
+            path: /minio/health/ready
+            port: 9000
+        resources:
+          requests:
+            memory: "250Mi"
+            cpu: "200m"
+          limits:
+            memory: "250Mi"
+            cpu: "200m"
+        volumeMounts:
+        - name: minio-pvc
+          mountPath: /data
+    
+  volumeClaimTemplates:
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: minio-pvc
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: do-block-storage
+      resources:
+        requests:
+          storage: 1Gi

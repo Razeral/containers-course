@@ -1,0 +1,105 @@
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: minio-server-svc
+#   namespace: minio-ns
+#   labels:
+#     app: minio-app
+#     name: minio-server-svc
+# spec:
+#   type: ClusterIP
+#   selector:
+#     name: minio-po
+#     app: minio-app
+#   ports:
+#   - port: 9000
+#     name: server-port
+#     targetPort: 9000
+
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: minio-console-svc
+#   namespace: minio-ns
+#   labels:
+#     app: minio-app
+#     name: minio-console-svc
+# spec:
+#   type: ClusterIP
+#   selector:
+#     name: minio-po
+#     app: minio-app
+#   ports:
+#   - port: 9090
+#     name: console-port
+#     targetPort: 9090
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio-hsvc
+  namespace: minio-ns
+  labels:
+    app: minio-app
+    name: minio-hsvc
+spec:
+  clusterIP: None
+  selector:
+    name: minio-po
+    app: minio-app
+  ports:
+  - name: server-port
+    port: 9000
+    targetPort: server-port
+  - name: console-port
+    port: 9090
+    targetPort: console-port
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  namespace: minio-ns
+  name: minio-server-ing
+  labels:
+    name: minio-server-ing
+    app: minio-app
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: minio-server.144.126.241.60.nip.io
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: minio-hsvc
+            port: 
+              name: server-port
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  namespace: minio-ns
+  name: minio-console-ing
+  labels:
+    name: minio-console-ing
+    app: minio-app
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: minio-console.144.126.241.60.nip.io
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: minio-hsvc
+            port: 
+              name: console-port
